@@ -1,0 +1,79 @@
+<div class="chat-container">
+  <!-- Sidebar -->
+  <aside class="chat-sidebar">
+    <div class="sidebar-header">
+      <h2>Conversations</h2>
+      <button 
+        class="btn btn-primary"
+        (click)="createNewConversation()"
+        [disabled]="isCreatingConversation()">
+        + New Chat
+      </button>
+    </div>
+    
+    <app-conversation-list
+      [conversations]="conversations()"
+      [activeConversationId]="activeConversationId()"
+      [isLoading]="isLoadingConversations()"
+      (conversationSelected)="selectConversation($event)"
+      (conversationDeleted)="deleteConversation($event)">
+    </app-conversation-list>
+  </aside>
+
+  <!-- Main Chat Area -->
+  <main class="chat-main">
+    @if (activeConversation(); as conversation) {
+      <div class="chat-header">
+        <h1>{{ conversation.title || 'New Conversation' }}</h1>
+        <div class="chat-info">
+          <span class="model-badge">{{ conversation.model }}</span>
+          <span class="message-count">{{ messages().length }} messages</span>
+        </div>
+      </div>
+
+      <div class="messages-container" #messagesContainer>
+        @if (isLoadingMessages()) {
+          <div class="loading-indicator">
+            <div class="spinner"></div>
+            <p>Loading messages...</p>
+          </div>
+        } @else if (messages().length === 0) {
+          <div class="empty-state">
+            <h3>Start a conversation</h3>
+            <p>Send a message to begin chatting with AI</p>
+          </div>
+        } @else {
+          @for (message of messages(); track message.id) {
+            <app-chat-message
+              [message]="message"
+              [isStreaming]="isStreaming() && message.id === streamingMessageId()">
+            </app-chat-message>
+          }
+        }
+
+        @if (errorMessage()) {
+          <div class="error-message">
+            <strong>Error:</strong> {{ errorMessage() }}
+            <button (click)="clearError()">Dismiss</button>
+          </div>
+        }
+      </div>
+
+      <app-chat-input
+        [disabled]="isStreaming()"
+        [placeholder]="isStreaming() ? 'AI is responding...' : 'Type your message...'"
+        (messageSent)="sendMessage($event)">
+      </app-chat-input>
+    } @else {
+      <div class="no-conversation">
+        <h2>Welcome to ClaudeForge</h2>
+        <p>Select a conversation or create a new one to get started</p>
+        <button 
+          class="btn btn-primary btn-lg"
+          (click)="createNewConversation()">
+          Start New Conversation
+        </button>
+      </div>
+    }
+  </main>
+</div>

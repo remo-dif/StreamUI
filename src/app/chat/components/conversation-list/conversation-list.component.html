@@ -1,0 +1,47 @@
+<div class="conversation-list">
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading conversations...</p>
+    </div>
+  } @else if (conversations.length === 0) {
+    <div class="empty-state">
+      <p>No conversations yet</p>
+      <span>Create your first conversation to get started</span>
+    </div>
+  } @else {
+    <div class="conversations-scroll">
+      @for (conversation of conversations; track conversation.id) {
+        <div
+          class="conversation-item"
+          [class.active]="conversation.id === activeConversationId"
+          (click)="selectConversation(conversation.id)"
+        >
+          <div class="conversation-content">
+            <h3 class="conversation-title">
+              {{ conversation.title || 'Untitled Conversation' }}
+            </h3>
+            <p class="conversation-meta">
+              <span class="message-count">
+                {{ conversation.messageCount || 0 }} messages
+              </span>
+              <span class="conversation-date">
+                {{ formatDate(conversation.updatedAt) }}
+              </span>
+            </p>
+          </div>
+          
+          <button
+            class="delete-button"
+            (click)="onDelete($event, conversation.id)"
+            title="Delete conversation"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,20 @@
+<div class="message" [class.user-message]="message.role === 'user'" [class.assistant-message]="message.role === 'assistant'">
+  <div class="message-header">
+    <span class="message-role">{{ message.role === 'user' ? 'You' : 'AI Assistant' }}</span>
+    <span class="message-time">{{ formatTime(message.createdAt) }}</span>
+  </div>
+  
+  <div class="message-content">
+    <div class="message-text" [innerHTML]="formatContent(message.content)"></div>
+    
+    @if (isStreaming) {
+      <span class="streaming-cursor">▊</span>
+    }
+    
+    @if (message.tokens && !isStreaming) {
+      <div class="message-tokens">
+        {{ message.tokens }} tokens
+      </div>
+    }
+  </div>
+</div>
