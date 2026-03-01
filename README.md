@@ -1,4 +1,4 @@
-# ClaudeForge - Angular 19 Frontend
+# SteamUI - Angular 19 Frontend
 
 Modern, production-ready Angular frontend for AI SaaS platform with SSE streaming.
 
@@ -71,7 +71,7 @@ npm run build
 # Production build (optimized)
 npm run build:prod
 
-# Output: dist/claudeforge-frontend/
+# Output: dist/steamui-frontend/
 ```
 
 ## 🧪 Testing
@@ -154,7 +154,7 @@ server {
 ### Docker
 ```dockerfile
 FROM nginx:alpine
-COPY dist/claudeforge-frontend /usr/share/nginx/html
+COPY dist/steamui-frontend /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 ```
 

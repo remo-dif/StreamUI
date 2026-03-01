@@ -1,4 +1,4 @@
-# Angular 19 Frontend - ClaudeForge AI SaaS
+# Angular 19 Frontend - SteamUI AI SaaS
 
 ## 🚀 Complete Implementation Guide
 
@@ -299,7 +299,7 @@ marked.setOptions({
 #### Build for Production
 ```bash
 npm run build:prod
-# Output: dist/claudeforge-frontend/
+# Output: dist/steamui-frontend/
 ```
 
 #### Deploy to:
