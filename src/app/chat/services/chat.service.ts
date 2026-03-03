@@ -16,6 +16,8 @@ import {
 @Injectable({
   providedIn: 'root'
 })
+// Implementation follows patterns described in the AI SDK chat UI docs:
+// https://ai-sdk.dev/docs/reference/ai-sdk-ui/use-chat
 export class ChatService {
   private http = inject(HttpClient);
 

@@ -5,6 +5,7 @@ import { Attachment, Message } from '@shared/models';
 @Injectable({
   providedIn: 'root'
 })
+// Wrapper service inspired by AI SDK chat UI docs: https://ai-sdk.dev/docs/reference/ai-sdk-ui/use-chat
 export class AiChatService {
   private chatService = inject(ChatService);
 
