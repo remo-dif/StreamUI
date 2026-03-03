@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, Input, ViewChild, ElementRef, AfterViewInit, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Attachment } from '@shared/models';
@@ -7,132 +7,115 @@ import { Attachment } from '@shared/models';
   selector: 'app-chat-input',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './chat-input.component.html',
+  template: `
+    <div class="chat-input-container">
+      <!-- Attachments preview -->
+      @if (attachments.length > 0) {
+        <div class="attachments-area">
+          @for (file of attachments; track file.name) {
+            <div class="attachment-chip">
+              <span>{{ file.name }}</span>
+              <button (click)="attachmentRemoved.emit(file)">×</button>
+            </div>
+          }
+        </div>
+      }
+
+      <form (submit)="submit.emit($event)">
+        <div class="input-wrapper">
+          <!-- Attach button -->
+          <button 
+            type="button"
+            class="attach-btn"
+            (click)="fileInput.click()">
+            📎
+          </button>
+
+          <input
+            #fileInput
+            type="file"
+            hidden
+            multiple
+            accept="image/*,.pdf"
+            (change)="onFilesSelected($event)">
+
+          <!-- Textarea -->
+          <textarea
+            [value]="input"
+            (input)="inputChange.emit($event)"
+            [placeholder]="isLoading ? 'AI is responding...' : 'Type your message...'"
+            [disabled]="isLoading"
+            (keydown.enter)="onKeyDown($event)">
+          </textarea>
+
+          <!-- Submit/Stop button -->
+          @if (isLoading) {
+            <button 
+              type="button"
+              class="stop-button"
+              (click)="stop.emit()">
+              ⬛ Stop
+            </button>
+          } @else {
+            <button 
+              type="submit"
+              class="send-button"
+              [disabled]="!input.trim() && attachments.length === 0">
+              ➤ Send
+            </button>
+          }
+        </div>
+      </form>
+    </div>
+  `,
   styleUrls: ['./chat-input.component.scss']
 })
-export class ChatInputComponent implements AfterViewInit {
-  @Input() disabled = false;
-  @Input() placeholder = 'Type your message...';
-  @Input() isStreaming = false; // show stop button when true
+export class ChatInputComponent {
+  @Input() input = '';
+  @Input() isLoading = false;
+  @Input() attachments: Attachment[] = [];
+  
+  @Output() inputChange = new EventEmitter<Event>();
+  @Output() submit = new EventEmitter<Event>();
+  @Output() stop = new EventEmitter<void>();
+  @Output() attachmentAdded = new EventEmitter<Attachment>();
+  @Output() attachmentRemoved = new EventEmitter<Attachment>();
 
-  @Output() messageSent = new EventEmitter<{ content: string; attachments?: Attachment[] }>();
-  @Output() stopStreaming = new EventEmitter<void>();
-
-  @ViewChild('messageInput') messageInput!: ElementRef<HTMLTextAreaElement>;
-
-  messageText = '';
-  attachments = signal<Attachment[]>([]);
-
-  // reference to hidden file input
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-
-  get characterCount(): number {
-    return this.messageText.length;
-  }
-
-  ngAfterViewInit() {
-    // Focus on input after view init
-    setTimeout(() => {
-      this.messageInput?.nativeElement?.focus();
-    }, 100);
-  }
-
-  onKeyDown(event: KeyboardEvent) {
-    // Send on Enter (without Shift)
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      if (!this.isStreaming) {
-        this.sendMessage();
-      }
+  onKeyDown(event: Event) {
+    const ke = event as KeyboardEvent;
+    if (ke.key === 'Enter' && !ke.shiftKey) {
+      ke.preventDefault();
+      this.submit.emit(ke as any);
     }
-  }
-
-  sendMessage() {
-    const text = this.messageText.trim();
-    
-    if (!text || this.disabled) {
-      return;
-    }
-
-    // Check character limit
-    if (text.length > 32000) {
-      alert('Message is too long. Maximum 32,000 characters allowed.');
-      return;
-    }
-
-    this.messageSent.emit({
-      content: text,
-      attachments: this.attachments()
-    });
-    this.messageText = '';
-    this.attachments.set([]);
-    
-    // Reset textarea height
-    this.resetHeight();
-    
-    // Focus back on input
-    setTimeout(() => {
-      this.messageInput?.nativeElement?.focus();
-    }, 0);
-  }
-
-  autoResize() {
-    const textarea = this.messageInput?.nativeElement;
-    if (!textarea) return;
-
-    // Reset height to calculate new height
-    textarea.style.height = 'auto';
-    
-    // Set new height based on content
-    const newHeight = Math.min(textarea.scrollHeight, 200);
-    textarea.style.height = newHeight + 'px';
-  }
-
-  onAttachClick() {
-    this.fileInput?.nativeElement?.click();
   }
 
   async onFilesSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (!input.files) return;
+    const files = input.files;
+    
+    if (!files) return;
 
-    const files = Array.from(input.files);
-    const attachments: Attachment[] = [];
-
-    for (const file of files) {
-      const dataUrl = await this.toDataUrl(file);
-      attachments.push({
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const base64 = await this.fileToBase64(file);
+      
+      this.attachmentAdded.emit({
         name: file.name,
         contentType: file.type,
-        url: dataUrl,
-        size: file.size
+        url: base64,
+        size: file.size,
       });
     }
 
-    // append new attachments
-    this.attachments.update(curr => [...curr, ...attachments]);
-
-    // reset input so same file can be selected again if needed
     input.value = '';
   }
 
-  removeAttachment(file: Attachment) {
-    this.attachments.update(curr => curr.filter(f => f !== file));
-  }
-
-  private toDataUrl(file: File): Promise<string> {
+  private fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = err => reject(err);
+      reader.onerror = reject;
       reader.readAsDataURL(file);
     });
-  }
-
-  private resetHeight() {
-    const textarea = this.messageInput?.nativeElement;
-    if (textarea) {
-      textarea.style.height = 'auto';
-    }
   }
 }

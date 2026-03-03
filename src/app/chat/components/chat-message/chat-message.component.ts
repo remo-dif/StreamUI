@@ -31,8 +31,8 @@ export class ChatMessageComponent {
     };
   }
 
-  formatTime(timestamp: string): string {
-    const date = new Date(timestamp);
+  formatTime(timestamp: string | Date): string {
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
