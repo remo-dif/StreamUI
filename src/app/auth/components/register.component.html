@@ -1,7 +1,77 @@
 <div class="auth-container">
   <div class="auth-card">
     <h1>Create Account</h1>
-    <p>Registration functionality to be implemented</p>
+    <p>Sign up for a new account</p>
+
+    <form (ngSubmit)="onSubmit()" #regForm="ngForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="credentials.email"
+          required
+          email
+          placeholder="you@example.com"
+          [disabled]="isLoading()">
+      </div>
+
+      <div class="form-group">
+        <label for="tenantId">Tenant ID</label>
+        <input
+          type="text"
+          id="tenantId"
+          name="tenantId"
+          [(ngModel)]="credentials.tenantId"
+          required
+          placeholder="Your organization tenant"
+          [disabled]="isLoading()">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="credentials.password"
+          required
+          minlength="8"
+          placeholder="••••••••"
+          [disabled]="isLoading()">
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          [(ngModel)]="credentials.confirmPassword"
+          required
+          minlength="8"
+          placeholder="••••••••"
+          [disabled]="isLoading()">
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-message">{{ errorMessage() }}</div>
+      }
+
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="!regForm.form.valid || isLoading() ||
+          credentials.password !== credentials.confirmPassword">
+        @if (isLoading()) {
+          <span>Registering...</span>
+        } @else {
+          <span>Sign Up</span>
+        }
+      </button>
+    </form>
+
     <div class="auth-footer">
       <p>Already have an account? <a routerLink="/auth/login">Sign in</a></p>
     </div>

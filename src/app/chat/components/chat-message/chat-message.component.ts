@@ -1,6 +1,9 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, SecurityContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer } from '@angular/platform-browser';
 import { Message } from '@shared/models';
+import { marked } from 'marked';
+import hljs from 'highlight.js';
 
 @Component({
   selector: 'app-chat-message',
@@ -12,6 +15,21 @@ import { Message } from '@shared/models';
 export class ChatMessageComponent {
   @Input({ required: true }) message!: Message;
   @Input() isStreaming = false;
+
+  constructor(private sanitizer: DomSanitizer) {
+    // Configure marked options
+    marked.setOptions({
+      breaks: true,
+      gfm: true
+    });
+    // Set highlight function using the separate method
+    (marked.defaults as any).highlight = (code: string, lang: string) => {
+      if (lang && hljs.getLanguage(lang)) {
+        return hljs.highlight(code, { language: lang }).value;
+      }
+      return hljs.highlightAuto(code).value;
+    };
+  }
 
   formatTime(timestamp: string): string {
     const date = new Date(timestamp);
@@ -32,44 +50,10 @@ export class ChatMessageComponent {
   }
 
   formatContent(content: string): string {
-    // Basic markdown-like formatting
-    // For production, use a library like 'marked' or 'ngx-markdown'
-    
     if (!content) return '';
-
-    // Escape HTML
-    let formatted = content
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-
-    // Code blocks ```code```
-    formatted = formatted.replace(
-      /```([\s\S]*?)```/g, 
-      '<pre><code>$1</code></pre>'
-    );
-
-    // Inline code `code`
-    formatted = formatted.replace(
-      /`([^`]+)`/g, 
-      '<code>$1</code>'
-    );
-
-    // Bold **text**
-    formatted = formatted.replace(
-      /\*\*([^*]+)\*\*/g, 
-      '<strong>$1</strong>'
-    );
-
-    // Italic *text*
-    formatted = formatted.replace(
-      /\*([^*]+)\*/g, 
-      '<em>$1</em>'
-    );
-
-    // Line breaks
-    formatted = formatted.replace(/\n/g, '<br>');
-
-    return formatted;
+    
+    const html = marked.parse(content) as string;
+    // Sanitize to prevent XSS while preserving formatted HTML
+    return this.sanitizer.sanitize(SecurityContext.HTML, html) || '';
   }
 }

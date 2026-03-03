@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from '@app/core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -12,15 +13,18 @@ export const routes: Routes = [
   },
   {
     path: 'chat',
-    loadChildren: () => import('./chat/chat.routes').then(m => m.CHAT_ROUTES)
+    loadChildren: () => import('./chat/chat.routes').then(m => m.CHAT_ROUTES),
+    canActivate: [authGuard]
   },
   {
     path: 'dashboard',
-    loadChildren: () => import('./dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES)
+    loadChildren: () => import('./dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES),
+    canActivate: [authGuard]
   },
   {
     path: 'admin',
-    loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES)
+    loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES),
+    canActivate: [authGuard]
   },
   {
     path: '**',

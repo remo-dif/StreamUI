@@ -1,4 +1,66 @@
 <div class="admin-container">
-  <h1>Admin Panel</h1>
-  <p>User and tenant management to be implemented</p>
+  <h1>Admin Panel - User Management</h1>
+
+  @if (isLoading()) {
+    <div class="loading">Loading users...</div>
+  }
+
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
+  }
+
+  @if (!isLoading()) {
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Search by email..."
+        [(ngModel)]="searchEmail"
+        class="search-input" />
+    </div>
+
+    <div class="table-container">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Created Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of filteredUsers; track user.id) {
+            <tr>
+              <td>{{ user.email }}</td>
+              <td>
+                <select
+                  [(ngModel)]="user.role"
+                  (change)="onRoleChange(user, user.role)"
+                  class="role-select">
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                  <option value="superadmin">Superadmin</option>
+                </select>
+              </td>
+              <td>
+                <button
+                  (click)="onStatusToggle(user)"
+                  [class.active]="user.status === 'active'"
+                  [class.inactive]="user.status === 'inactive'"
+                  class="status-btn">
+                  {{ user.status }}
+                </button>
+              </td>
+              <td>{{ user.createdAt | date : 'short' }}</td>
+            </tr>
+          }
+          @if (filteredUsers.length === 0) {
+            <tr>
+              <td colspan="4" class="no-data">No users found</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 </div>
