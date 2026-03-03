@@ -61,8 +61,10 @@
 
       <app-chat-input
         [disabled]="isStreaming()"
+        [isStreaming]="isStreaming()"
         [placeholder]="isStreaming() ? 'AI is responding...' : 'Type your message...'"
-        (messageSent)="sendMessage($event)">
+        (messageSent)="sendMessage($event)"
+        (stopStreaming)="stopStreaming()">
       </app-chat-input>
     } @else {
       <div class="no-conversation">

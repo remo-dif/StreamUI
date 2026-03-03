@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Conversation, Message } from '@shared/models';
+import { Conversation, Message, Attachment } from '@shared/models';
 import { Subject, finalize, takeUntil } from 'rxjs';
 import { ChatService } from '../../services/chat.service';
 import { ChatInputComponent } from '../chat-input/chat-input.component';
@@ -151,16 +151,16 @@ export class ChatContainerComponent implements OnInit, OnDestroy {
     });
   }
 
-  sendMessage(content: string) {
+  sendMessage(payload: { content: string; attachments?: Attachment[] }) {
     const conversationId = this.activeConversationId();
     if (!conversationId) return;
 
-    // Optimistic UI update - add user message immediately
-    const userMessage = this.chatService.createOptimisticMessage(conversationId, content);
+    // Optimistic UI update - user message
+    const userMessage = this.chatService.createOptimisticMessage(conversationId, payload.content, payload.attachments);
     this.messages.update(msgs => [...msgs, userMessage]);
     this.scrollToBottom();
 
-    // Create placeholder for assistant response
+    // Assistant placeholder
     const assistantPlaceholder = this.chatService.createAssistantMessagePlaceholder(conversationId);
     this.messages.update(msgs => [...msgs, assistantPlaceholder]);
     
@@ -168,7 +168,7 @@ export class ChatContainerComponent implements OnInit, OnDestroy {
     this.streamingMessageId.set(assistantPlaceholder.id);
 
     // Send message with streaming
-    this.chatService.sendMessageStream(conversationId, { content }).pipe(
+    this.chatService.sendMessageStream(conversationId, { content: payload.content, attachments: payload.attachments }).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (event) => {
@@ -231,6 +231,19 @@ export class ChatContainerComponent implements OnInit, OnDestroy {
         container.scrollTop = container.scrollHeight;
       }
     }, 0);
+  }
+
+  stopStreaming() {
+    // abort the HTTP request
+    this.chatService.stopStreaming();
+    this.isStreaming.set(false);
+
+    // remove placeholder message if exists
+    const placeholderId = this.streamingMessageId();
+    if (placeholderId) {
+      this.messages.update(msgs => msgs.filter(m => m.id !== placeholderId));
+    }
+    this.streamingMessageId.set(null);
   }
 
   clearError() {

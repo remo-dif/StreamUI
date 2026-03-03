@@ -1,20 +1,33 @@
 <div class="chat-input-container">
+  <div class="attachment-chips" *ngIf="attachments().length">
+    <span class="attachment-chip" *ngFor="let file of attachments()">
+      {{ file.name }}
+      <button type="button" class="remove-file" (click)="removeAttachment(file)">✕</button>
+    </span>
+  </div>
+
   <div class="input-wrapper">
     <textarea
       #messageInput
       [(ngModel)]="messageText"
       [placeholder]="placeholder"
-      [disabled]="disabled"
+      [disabled]="disabled || isStreaming"
       (keydown)="onKeyDown($event)"
       (input)="autoResize()"
       rows="1"
       class="message-input"
     ></textarea>
+
+    <button type="button" class="attach-button" (click)="onAttachClick()" [disabled]="disabled || isStreaming" title="Attach file">
+      📎
+    </button>
+    <input #fileInput type="file" accept="image/*,.pdf" multiple hidden (change)="onFilesSelected($event)" />
     
     <button
       type="button"
       class="send-button"
-      [disabled]="disabled || !messageText.trim()"
+      *ngIf="!isStreaming"
+      [disabled]="disabled || (!messageText.trim() && attachments().length === 0)"
       (click)="sendMessage()"
       [title]="disabled ? 'Please wait...' : 'Send message (Enter)'"
     >
@@ -28,6 +41,17 @@
           <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
         </svg>
       }
+    </button>
+
+    <button
+      type="button"
+      class="stop-button"
+      *ngIf="isStreaming"
+      [disabled]="disabled"
+      (click)="stopStreaming.emit()"
+      title="Stop generating"
+    >
+      Stop
     </button>
   </div>
   

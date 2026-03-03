@@ -6,6 +6,23 @@
   
   <div class="message-content">
     <div class="message-text" [innerHTML]="formatContent(message.content)"></div>
+
+    <!-- attachments -->
+    @if (message.attachments && message.attachments.length) {
+      <div class="message-attachments">
+        @for (att of message.attachments; track att.url) {
+          <div class="attachment-item">
+            @if (att.contentType.startsWith('image/')) {
+              <img [src]="att.url" [alt]="att.name" class="attachment-image" />
+            } @else {
+              <a [href]="att.url" [download]="att.name" class="attachment-file">
+                📄 {{ att.name }}
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
     
     @if (isStreaming) {
       <span class="streaming-cursor">▊</span>

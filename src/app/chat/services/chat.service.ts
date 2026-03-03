@@ -9,7 +9,8 @@ import {
   MessageRole,
   SendMessageRequest,
   StreamEvent,
-  PaginatedResponse
+  PaginatedResponse,
+  Attachment
 } from '@shared/models';
 
 @Injectable({
@@ -17,6 +18,9 @@ import {
 })
 export class ChatService {
   private http = inject(HttpClient);
+
+  // controller used for streaming requests so that we can cancel them
+  private abortController: AbortController | null = null;
 
   // ──────────────────────────────────────────────────────────
   // Conversation Management
@@ -76,12 +80,14 @@ export class ChatService {
   ): Observable<StreamEvent> {
     const subject = new Subject<StreamEvent>();
     
-    // Create EventSource for SSE
+    // cancel any existing streaming call first
+    this.abortController?.abort();
+
+    // create new controller for this stream
+    this.abortController = new AbortController();
+
     const url = `${environment.apiUrl}/chat/conversations/${conversationId}/messages`;
-    
-    // We need to use fetch with EventSource-like behavior
-    // since EventSource doesn't support POST or custom headers
-    this.streamWithFetch(url, request, subject);
+    this.streamWithFetch(url, request, subject, this.abortController);
 
     return subject.asObservable();
   }
@@ -89,7 +95,8 @@ export class ChatService {
   private async streamWithFetch(
     url: string,
     body: any,
-    subject: Subject<StreamEvent>
+    subject: Subject<StreamEvent>,
+    controller: AbortController
   ): Promise<void> {
     try {
       const token = localStorage.getItem('access_token');
@@ -101,7 +108,8 @@ export class ChatService {
           'Accept': 'text/event-stream',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        signal: controller.signal
       });
 
       if (!response.ok) {
@@ -149,25 +157,46 @@ export class ChatService {
           }
         }
       }
-    } catch (error) {
-      console.error('Stream error:', error);
-      subject.error(error);
+    } catch (error: any) {
+      // if the fetch was aborted, we treat it as a controlled stop
+      if (error.name === 'AbortError') {
+        console.log('Stream aborted by user');
+        subject.complete();
+      } else {
+        console.error('Stream error:', error);
+        subject.error(error);
+      }
+    } finally {
+      // clear controller when done
+      if (this.abortController === controller) {
+        this.abortController = null;
+      }
     }
+  }
+
+  /**
+   * Stops the current streaming request (if any).
+   * The EventSource Observable will complete internally.
+   */
+  stopStreaming(): void {
+    this.abortController?.abort();
+    this.abortController = null;
   }
 
   // ──────────────────────────────────────────────────────────
   // Helper: Optimistic Message Update
   // ──────────────────────────────────────────────────────────
 
-  createOptimisticMessage(conversationId: string, content: string): Message {
+  createOptimisticMessage(conversationId: string, content: string, attachments?: Attachment[]): Message {
     return {
       id: `temp-${Date.now()}`,
       conversationId,
       role: MessageRole.USER,
       content,
       tokens: null,
-      createdAt: new Date().toISOString()
-    };
+      createdAt: new Date().toISOString(),
+      ...(attachments ? { attachments } : {})
+    } as Message;
   }
 
   createAssistantMessagePlaceholder(conversationId: string): Message {

@@ -47,6 +47,13 @@ export interface Conversation {
   isArchived: boolean;
 }
 
+export interface Attachment {
+  name: string;
+  contentType: string;
+  url: string; // base64 data URL or file URL
+  size: number;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
@@ -54,6 +61,7 @@ export interface Message {
   content: string;
   tokens: number | null;
   createdAt: string;
+  attachments?: Attachment[];
 }
 
 export enum MessageRole {
@@ -65,6 +73,7 @@ export enum MessageRole {
 export interface SendMessageRequest {
   content: string;
   model?: string;
+  attachments?: Attachment[];
 }
 
 export interface StreamEvent {

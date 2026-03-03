@@ -108,7 +108,7 @@ if (error.status === 401) {
 #### 4. **Optimistic UI Updates**
 ```typescript
 // Add message to UI immediately
-const userMessage = this.chatService.createOptimisticMessage(id, content);
+const userMessage = this.chatService.createOptimisticMessage(id, content, attachments /* optional */);
 this.messages.update(msgs => [...msgs, userMessage]);
 
 // Stream assistant response
@@ -251,7 +251,7 @@ You can easily integrate:
 // Unit tests with Jasmine
 describe('ChatService', () => {
   it('should create optimistic message', () => {
-    const message = service.createOptimisticMessage('123', 'Hello');
+    const message = service.createOptimisticMessage('123', 'Hello', [{ name:'file.png', contentType:'image/png', url:'data:...', size:123 }]);
     expect(message.id).toContain('temp-');
     expect(message.role).toBe('user');
   });

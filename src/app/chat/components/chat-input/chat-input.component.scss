@@ -88,6 +88,57 @@
    font-size: 0.75rem;
    color: #999;
  }
+
+ .attachment-chips {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 0.5rem;
+   margin-bottom: 0.5rem;
+ }
+
+ .attachment-chip {
+   background: #e0e0e0;
+   padding: 0.25rem 0.5rem;
+   border-radius: 4px;
+   display: inline-flex;
+   align-items: center;
+   font-size: 0.85rem;
+ }
+
+ .attachment-chip .remove-file {
+   margin-left: 0.25rem;
+   background: transparent;
+   border: none;
+   cursor: pointer;
+   font-size: 0.85rem;
+ }
+
+ .attach-button {
+   width: 40px;
+   height: 40px;
+   border: none;
+   background: #f0f0f0;
+   border-radius: 50%;
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+ }
+
+ .stop-button {
+   padding: 0 1rem;
+   height: 48px;
+   border: none;
+   border-radius: 24px;
+   background: #f44336;
+   color: white;
+   cursor: pointer;
+   transition: background 0.2s;
+ }
+
+ .stop-button:hover:not(:disabled) {
+   background: #d32f2f;
+ }
  
  .character-count {
    color: #666;
