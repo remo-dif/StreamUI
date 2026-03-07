@@ -1,0 +1,58 @@
+<div class="chat-input-container">
+  <!-- Attachments preview -->
+  @if (attachments.length > 0) {
+    <div class="attachments-area">
+      @for (file of attachments; track file.name) {
+        <div class="attachment-chip">
+          <span>{{ file.name }}</span>
+          <button (click)="attachmentRemoved.emit(file)">×</button>
+        </div>
+      }
+    </div>
+  }
+
+  <form (submit)="submitMessage.emit($event)">
+    <div class="input-wrapper">
+      <!-- Attach button -->
+      <button type="button" class="attach-btn" (click)="fileInput.click()">
+        📎
+      </button>
+
+      <input
+        #fileInput
+        type="file"
+        hidden
+        multiple
+        accept="image/*,.pdf"
+        (change)="onFilesSelected($event)"
+      />
+
+      <!-- Textarea -->
+      <textarea
+        [value]="input"
+        (input)="inputChange.emit($event)"
+        [placeholder]="
+          isLoading ? 'AI is responding...' : 'Type your message...'
+        "
+        [disabled]="isLoading"
+        (keydown.enter)="onKeyDown($event)"
+      >
+      </textarea>
+
+      <!-- Submit/Stop button -->
+      @if (isLoading) {
+        <button type="button" class="stop-button" (click)="stop.emit()">
+          ⬛ Stop
+        </button>
+      } @else {
+        <button
+          type="submit"
+          class="send-button"
+          [disabled]="!input.trim() && attachments.length === 0"
+        >
+          ➤ Send
+        </button>
+      }
+    </div>
+  </form>
+</div>
