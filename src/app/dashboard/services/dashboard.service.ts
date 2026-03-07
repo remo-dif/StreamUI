@@ -7,7 +7,7 @@ export interface UsageDashboardResponse {
   quota: { total: number; used: number; percentage: number };
   today: { tokens: number };
   last30Days: { tokens: number; requestCount: number };
-  dailyBreakdown: Array<{ date: string; tokens: number }>; // adjust as API returns
+  dailyBreakdown: { date: string; tokens: number }[]; // adjust as API returns
 }
 
 @Injectable({ providedIn: 'root' })

@@ -35,7 +35,7 @@ export class ChatService {
     );
   }
 
-  getConversations(page: number = 1, limit: number = 20): Observable<PaginatedResponse<Conversation>> {
+  getConversations(page = 1, limit = 20): Observable<PaginatedResponse<Conversation>> {
     return this.http.get<PaginatedResponse<Conversation>>(
       `${environment.apiUrl}/chat/conversations`,
       { params: { page: page.toString(), limit: limit.toString() } }

@@ -70,7 +70,7 @@ export class ChatContainerComponent implements OnInit {
     // load message history
     this.chatService.getMessages(conversationId).subscribe({
       next: (messages) => {
-        this.chat.setMessages(messages as any);
+        this.chat.setMessages(messages);
       }
     });
   }
